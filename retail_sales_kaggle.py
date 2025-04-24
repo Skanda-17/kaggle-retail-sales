@@ -165,9 +165,9 @@ class RetailSalesPredictor:
         try:
             logger.info(f"Training SARIMA model with order={order}, seasonal_order={seasonal_order}")
             
-            # Train SARIMA model
+            # Use 'total amount' instead of 'sales'
             model = SARIMAX(
-                self.train_data['sales'],
+                self.train_data['total amount'],
                 order=order,
                 seasonal_order=seasonal_order,
                 enforce_stationarity=False,
