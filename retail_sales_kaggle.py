@@ -298,7 +298,7 @@ class RetailSalesPredictor:
         try:
             logger.info("Analyzing product categories")
             
-           self.data.columns = self.data.columns.str.strip().str.lower()  # This will convert 'Store', 'Item', 'Sales' to lowercase
+            self.data.columns = self.data.columns.str.strip().str.lower()  # This will convert 'Store', 'Item', 'Sales' to lowercase
 
 # Print the column names to verify
             print(self.data.columns)
