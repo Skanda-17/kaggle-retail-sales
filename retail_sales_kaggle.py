@@ -304,16 +304,16 @@ class RetailSalesPredictor:
             print(self.data.columns)
 
 # Now group by store and item and sum the sales
-            store_item_sales = self.data.groupby(['store', 'item'])['sales'].sum().reset_index()
+            store_item_sales = self.data.groupby(['Store', 'Item'])['Sales'].sum().reset_index()
 
 # Sort the store-item combinations by total sales and find the top 5
-            top_combinations = store_item_sales.sort_values('sales', ascending=False).head(5)
+            top_combinations = store_item_sales.sort_values('Sales', ascending=False).head(5)
 
 # Display the top combinations
             print(top_combinations)
             
             plt.figure(figsize=(10, 6))
-            sns.barplot(x='store', y='sales', hue='item', data=top_combinations)
+            sns.barplot(x='Store', y='Sales', hue='Item', data=top_combinations)
             plt.title('Top 5 Store-Item Combinations by Total Sales')
             plt.xlabel('Store ID')
             plt.ylabel('Total Sales')
@@ -321,7 +321,7 @@ class RetailSalesPredictor:
             plt.close()
             
             # Analyze sales by store
-            store_sales = self.data.groupby('store')['sales'].sum().sort_values(ascending=False)
+            store_sales = self.data.groupby('Store')['Sales'].sum().sort_values(ascending=False)
             
             plt.figure(figsize=(10, 6))
             store_sales.plot(kind='bar')
