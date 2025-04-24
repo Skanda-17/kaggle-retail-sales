@@ -95,10 +95,11 @@ class RetailSalesPredictor:
             logger.info("Visualizing sales data")
             
             plt.figure(figsize=(12, 6))
-            plt.plot(self.processed_data.index, self.processed_data['sales'])
+            # Use 'total amount' instead of 'sales'
+            plt.plot(self.processed_data.index, self.processed_data['total amount'])
             plt.title('Store-Item Sales Over Time')
             plt.xlabel('Date')
-            plt.ylabel('Sales')
+            plt.ylabel('Total Amount')
             plt.grid(True)
             plt.savefig('sales_data_visualization.png')
             plt.close()
@@ -107,7 +108,7 @@ class RetailSalesPredictor:
             from statsmodels.tsa.seasonal import seasonal_decompose
             
             # Resample to monthly if needed
-            monthly_data = self.processed_data['sales'].resample('M').sum()
+            monthly_data = self.processed_data['total amount'].resample('M').sum()
             
             # Only decompose if we have enough data
             if len(monthly_data) >= 24:
