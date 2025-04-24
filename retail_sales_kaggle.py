@@ -57,28 +57,31 @@ class RetailSalesPredictor:
             logger.error(f"Error loading data: {str(e)}")
             raise
     
-    def preprocess_data(self, store_id=1, item_id=1):
-        """Preprocess the data for time series analysis for a specific store and item."""
+    def preprocess_data(self, store_id=None, item_id=None):
+        """Preprocess the data for time series analysis."""
         if self.data is None:
             raise ValueError("No data loaded. Please load data first.")
             
         try:
-            logger.info(f"Preprocessing data for store {store_id} and item {item_id}")
+            logger.info("Preprocessing data")
             
-            # Filter data for specific store and item
-            filtered_data = self.data[(self.data['store'] == store_id) & (self.data['item'] == item_id)]
+            # Check if 'store' and 'item' columns exist
+            if store_id is not None and 'store' in self.data.columns:
+                self.data = self.data[self.data['store'] == store_id]
+            if item_id is not None and 'item' in self.data.columns:
+                self.data = self.data[self.data['item'] == item_id]
             
             # Set date as index
-            filtered_data.set_index('date', inplace=True)
+            self.data.set_index('date', inplace=True)
             
             # Sort by date
-            filtered_data = filtered_data.sort_index()
+            self.data = self.data.sort_index()
             
             # Store the processed data
-            self.processed_data = filtered_data
+            self.processed_data = self.data
             
-            logger.info(f"Data preprocessing completed - shape: {filtered_data.shape}")
-            return filtered_data
+            logger.info(f"Data preprocessing completed - shape: {self.data.shape}")
+            return self.data
         except Exception as e:
             logger.error(f"Error preprocessing data: {str(e)}")
             raise
