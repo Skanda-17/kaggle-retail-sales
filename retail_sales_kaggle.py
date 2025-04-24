@@ -298,11 +298,19 @@ class RetailSalesPredictor:
         try:
             logger.info("Analyzing product categories")
             
-            # Aggregate sales by store and item
+           self.data.columns = self.data.columns.str.strip().str.lower()  # This will convert 'Store', 'Item', 'Sales' to lowercase
+
+# Print the column names to verify
+            print(self.data.columns)
+
+# Now group by store and item and sum the sales
             store_item_sales = self.data.groupby(['store', 'item'])['sales'].sum().reset_index()
-            
-            # Find top 5 store-item combinations
+
+# Sort the store-item combinations by total sales and find the top 5
             top_combinations = store_item_sales.sort_values('sales', ascending=False).head(5)
+
+# Display the top combinations
+            print(top_combinations)
             
             plt.figure(figsize=(10, 6))
             sns.barplot(x='store', y='sales', hue='item', data=top_combinations)
