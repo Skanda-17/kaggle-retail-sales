@@ -193,11 +193,14 @@ class RetailSalesPredictor:
             logger.info("Evaluating model performance")
             
             # Generate predictions for test period
-            start = len(self.train_data)
-            end = len(self.train_data) + len(self.test_data) - 1
+            start = self.test_data.index[0]
+            end = self.test_data.index[-1]
             
             predictions = self.model_fit.predict(start=start, end=end, dynamic=False)
             self.test_predictions = predictions
+            
+            # Align predictions with test data
+            predictions = predictions[:len(self.test_data)]
             
             # Use 'total amount' instead of 'sales'
             rmse = sqrt(mean_squared_error(self.test_data['total amount'], predictions))
