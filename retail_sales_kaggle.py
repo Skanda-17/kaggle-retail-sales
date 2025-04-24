@@ -199,20 +199,20 @@ class RetailSalesPredictor:
             predictions = self.model_fit.predict(start=start, end=end, dynamic=False)
             self.test_predictions = predictions
             
-            # Calculate evaluation metrics
-            rmse = sqrt(mean_squared_error(self.test_data['sales'], predictions))
-            mape = np.mean(np.abs((self.test_data['sales'] - predictions) / self.test_data['sales'])) * 100
+            # Use 'total amount' instead of 'sales'
+            rmse = sqrt(mean_squared_error(self.test_data['total amount'], predictions))
+            mape = np.mean(np.abs((self.test_data['total amount'] - predictions) / self.test_data['total amount'])) * 100
             
             logger.info(f"Model RMSE: {rmse}")
             logger.info(f"Model MAPE: {mape}%")
             
             # Visualize actual vs predicted
             plt.figure(figsize=(12, 6))
-            plt.plot(self.test_data.index, self.test_data['sales'], label='Actual Sales')
+            plt.plot(self.test_data.index, self.test_data['total amount'], label='Actual Sales')
             plt.plot(self.test_data.index, predictions, label='Predicted Sales', color='red')
             plt.title('Actual vs Predicted Sales')
             plt.xlabel('Date')
-            plt.ylabel('Sales')
+            plt.ylabel('Total Amount')
             plt.legend()
             plt.grid(True)
             plt.savefig('model_evaluation.png')
