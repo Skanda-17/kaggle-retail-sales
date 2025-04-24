@@ -42,12 +42,8 @@ class RetailSalesPredictor:
             self.data.columns = self.data.columns.str.lower()
             
             # Convert date column to datetime
-           # Normalize column names to lowercase (if needed)
             self.data.columns = self.data.columns.str.strip().str.lower()  # This will convert 'Date' to 'date'
-
-# Now convert the 'date' column to datetime
             self.data['date'] = pd.to_datetime(self.data['date'])
-
                 
             logger.info(f"Data loaded successfully with shape {self.data.shape}")
             return self.data
@@ -301,41 +297,28 @@ class RetailSalesPredictor:
         try:
             logger.info("Analyzing product categories")
             
-            self.data.columns = self.data.columns.str.strip().str.lower()  # This will convert 'Store', 'Item', 'Sales' to lowercase
-
-# Print the column names to verify
-            print(self.data.columns)
-
-# Now group by store and item and sum the sales
-            store_item_sales = self.data.groupby(['Store', 'Item'])['Sales'].sum().reset_index()
-
-# Sort the store-item combinations by total sales and find the top 5
-            top_combinations = store_item_sales.sort_values('Sales', ascending=False).head(5)
-
-# Display the top combinations
-            print(top_combinations)
+            # Ensure column names are normalized
+            self.data.columns = self.data.columns.str.strip().str.lower()
             
+            # Calculate total sales for each product category
+            self.data['total_sales'] = self.data['quantity'] * self.data['price per unit']
+            category_sales = self.data.groupby('product category')['total_sales'].sum().reset_index()
+            
+            # Sort by total sales and find the top 5 categories
+            top_categories = category_sales.sort_values('total_sales', ascending=False).head(5)
+            
+            # Plot top categories
             plt.figure(figsize=(10, 6))
-            sns.barplot(x='Store', y='Sales', hue='Item', data=top_combinations)
-            plt.title('Top 5 Store-Item Combinations by Total Sales')
-            plt.xlabel('Store ID')
+            sns.barplot(x='product category', y='total_sales', data=top_categories)
+            plt.title('Top 5 Product Categories by Total Sales')
+            plt.xlabel('Product Category')
             plt.ylabel('Total Sales')
-            plt.savefig('top_store_item_combinations.png')
-            plt.close()
-            
-            # Analyze sales by store
-            store_sales = self.data.groupby('Store')['Sales'].sum().sort_values(ascending=False)
-            
-            plt.figure(figsize=(10, 6))
-            store_sales.plot(kind='bar')
-            plt.title('Total Sales by Store')
-            plt.xlabel('Store ID')
-            plt.ylabel('Total Sales')
-            plt.savefig('sales_by_store.png')
+            plt.xticks(rotation=45)
+            plt.savefig('top_product_categories.png')
             plt.close()
             
             logger.info("Product category analysis completed")
-            return store_item_sales
+            return category_sales
         except Exception as e:
             logger.error(f"Error analyzing product categories: {str(e)}")
             raise
