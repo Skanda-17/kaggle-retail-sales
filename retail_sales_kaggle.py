@@ -18,7 +18,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("retail_sales_predictor")
 
-class RetailsalesPredictor:
+class RetailSalesPredictor:
     def __init__(self, data_path=None):
         """Initialize the retail sales predictor with optional data path."""
         self.data_path = data_path
@@ -41,8 +41,14 @@ class RetailsalesPredictor:
             # Convert column names to lowercase
             self.data.columns = self.data.columns.str.lower()
             
+            # Log available columns for debugging
+            logger.info(f"Available columns: {self.data.columns.tolist()}")
+            
+            # Check if 'date' column exists
+            if 'date' not in self.data.columns:
+                raise KeyError("'date' column is missing in the dataset.")
+            
             # Convert date column to datetime
-            self.data.columns = self.data.columns.str.strip().str.lower()  # This will convert 'date' to 'date'
             self.data['date'] = pd.to_datetime(self.data['date'])
                 
             logger.info(f"Data loaded successfully with shape {self.data.shape}")
@@ -68,7 +74,7 @@ class RetailsalesPredictor:
             # Sort by date
             filtered_data = filtered_data.sort_index()
             
-            # store the processed data
+            # Store the processed data
             self.processed_data = filtered_data
             
             logger.info(f"Data preprocessing completed - shape: {filtered_data.shape}")
@@ -87,9 +93,9 @@ class RetailsalesPredictor:
             
             plt.figure(figsize=(12, 6))
             plt.plot(self.processed_data.index, self.processed_data['sales'])
-            plt.title('store-item sales Over Time')
-            plt.xlabel('date')
-            plt.ylabel('sales')
+            plt.title('Store-Item Sales Over Time')
+            plt.xlabel('Date')
+            plt.ylabel('Sales')
             plt.grid(True)
             plt.savefig('sales_data_visualization.png')
             plt.close()
@@ -198,11 +204,11 @@ class RetailsalesPredictor:
             
             # Visualize actual vs predicted
             plt.figure(figsize=(12, 6))
-            plt.plot(self.test_data.index, self.test_data['sales'], label='Actual sales')
-            plt.plot(self.test_data.index, predictions, label='Predicted sales', color='red')
-            plt.title('Actual vs Predicted sales')
-            plt.xlabel('date')
-            plt.ylabel('sales')
+            plt.plot(self.test_data.index, self.test_data['sales'], label='Actual Sales')
+            plt.plot(self.test_data.index, predictions, label='Predicted Sales', color='red')
+            plt.title('Actual vs Predicted Sales')
+            plt.xlabel('Date')
+            plt.ylabel('Sales')
             plt.legend()
             plt.grid(True)
             plt.savefig('model_evaluation.png')
@@ -243,11 +249,11 @@ class RetailsalesPredictor:
             
             # Visualize forecast
             plt.figure(figsize=(12, 6))
-            plt.plot(self.processed_data.index[-90:], self.processed_data['sales'][-90:], label='Historical sales')
-            plt.plot(forecast_df.index, forecast_df['sales'], label='Forecasted sales', color='red')
-            plt.title(f'sales Forecast for Next {steps} Days')
-            plt.xlabel('date')
-            plt.ylabel('sales')
+            plt.plot(self.processed_data.index[-90:], self.processed_data['sales'][-90:], label='Historical Sales')
+            plt.plot(forecast_df.index, forecast_df['sales'], label='Forecasted Sales', color='red')
+            plt.title(f'Sales Forecast for Next {steps} Days')
+            plt.xlabel('Date')
+            plt.ylabel('Sales')
             plt.legend()
             plt.grid(True)
             plt.savefig('sales_forecast.png')
@@ -310,9 +316,9 @@ class RetailsalesPredictor:
             # Plot top categories
             plt.figure(figsize=(10, 6))
             sns.barplot(x='product category', y='total_sales', data=top_categories)
-            plt.title('Top 5 Product Categories by Total sales')
+            plt.title('Top 5 Product Categories by Total Sales')
             plt.xlabel('Product Category')
-            plt.ylabel('Total sales')
+            plt.ylabel('Total Sales')
             plt.xticks(rotation=45)
             plt.savefig('top_product_categories.png')
             plt.close()
@@ -325,20 +331,20 @@ class RetailsalesPredictor:
 
 def main():
     """Main function to run the retail sales prediction."""
-    parser = argparse.ArgumentParser(description='Retail sales Prediction')
+    parser = argparse.ArgumentParser(description='Retail Sales Prediction')
     parser.add_argument('--data_path', type=str, default='train.csv', help='Path to the dataset CSV file')
-    parser.add_argument('--store_id', type=int, default=1, help='store ID to analyze')
-    parser.add_argument('--item_id', type=int, default=1, help='item ID to analyze')
+    parser.add_argument('--store_id', type=int, default=1, help='Store ID to analyze')
+    parser.add_argument('--item_id', type=int, default=1, help='Item ID to analyze')
     parser.add_argument('--test_days', type=int, default=90, help='Number of days for testing')
     parser.add_argument('--forecast_days', type=int, default=30, help='Number of days to forecast')
     
     args = parser.parse_args()
     
     logger.info("Starting retail sales prediction")
-    logger.info(f"Parameters: store ID={args.store_id}, item ID={args.item_id}, Test days={args.test_days}, Forecast days={args.forecast_days}")
+    logger.info(f"Parameters: Store ID={args.store_id}, Item ID={args.item_id}, Test days={args.test_days}, Forecast days={args.forecast_days}")
     
     # Initialize predictor
-    predictor = RetailsalesPredictor(args.data_path)
+    predictor = RetailSalesPredictor(args.data_path)
     
     # Load data
     predictor.load_data()
