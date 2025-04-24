@@ -38,6 +38,9 @@ class RetailSalesPredictor:
             logger.info(f"Loading data from {self.data_path}")
             self.data = pd.read_csv(self.data_path)
             
+            # Convert column names to lowercase
+            self.data.columns = self.data.columns.str.lower()
+            
             # Convert date column to datetime
            # Normalize column names to lowercase (if needed)
             self.data.columns = self.data.columns.str.strip().str.lower()  # This will convert 'Date' to 'date'
