@@ -197,10 +197,10 @@ class RetailSalesPredictor:
             end = start + len(self.test_data) - 1
             
             predictions = self.model_fit.predict(start=start, end=end, dynamic=False)
-            self.test_predictions = predictions
             
-            # Align predictions with test data
-            predictions = predictions[:len(self.test_data)]
+            # Align predictions with test data index
+            predictions = pd.Series(predictions, index=self.test_data.index)
+            self.test_predictions = predictions
             
             # Use 'total amount' instead of 'sales'
             rmse = sqrt(mean_squared_error(self.test_data['total amount'], predictions))
