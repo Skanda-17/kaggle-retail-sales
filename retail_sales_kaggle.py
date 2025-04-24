@@ -251,7 +251,7 @@ class RetailSalesPredictor:
             # Create forecast DataFrame
             forecast_df = pd.DataFrame({
                 'date': future_dates,
-                'sales': forecast
+                'total amount': forecast
             })
             forecast_df.set_index('date', inplace=True)
             
@@ -259,11 +259,11 @@ class RetailSalesPredictor:
             
             # Visualize forecast
             plt.figure(figsize=(12, 6))
-            plt.plot(self.processed_data.index[-90:], self.processed_data['sales'][-90:], label='Historical Sales')
-            plt.plot(forecast_df.index, forecast_df['sales'], label='Forecasted Sales', color='red')
+            plt.plot(self.processed_data.index[-90:], self.processed_data['total amount'][-90:], label='Historical Sales')
+            plt.plot(forecast_df.index, forecast_df['total amount'], label='Forecasted Sales', color='red')
             plt.title(f'Sales Forecast for Next {steps} Days')
             plt.xlabel('Date')
-            plt.ylabel('Sales')
+            plt.ylabel('Total Amount')
             plt.legend()
             plt.grid(True)
             plt.savefig('sales_forecast.png')
