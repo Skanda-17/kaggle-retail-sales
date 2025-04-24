@@ -39,7 +39,12 @@ class RetailSalesPredictor:
             self.data = pd.read_csv(self.data_path)
             
             # Convert date column to datetime
+           # Normalize column names to lowercase (if needed)
+            self.data.columns = self.data.columns.str.strip().str.lower()  # This will convert 'Date' to 'date'
+
+# Now convert the 'date' column to datetime
             self.data['date'] = pd.to_datetime(self.data['date'])
+
                 
             logger.info(f"Data loaded successfully with shape {self.data.shape}")
             return self.data
