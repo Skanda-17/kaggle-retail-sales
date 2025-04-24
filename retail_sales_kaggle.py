@@ -192,9 +192,9 @@ class RetailSalesPredictor:
         try:
             logger.info("Evaluating model performance")
             
-            # Generate predictions for test period
-            start = self.test_data.index[0]
-            end = self.test_data.index[-1]
+            # Use integer-based indices for predictions
+            start = len(self.train_data)
+            end = start + len(self.test_data) - 1
             
             predictions = self.model_fit.predict(start=start, end=end, dynamic=False)
             self.test_predictions = predictions
