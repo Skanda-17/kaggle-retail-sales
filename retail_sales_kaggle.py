@@ -202,6 +202,9 @@ class RetailSalesPredictor:
             predictions = pd.Series(predictions, index=self.test_data.index)
             self.test_predictions = predictions
             
+            # Handle NaN values in predictions
+            predictions = predictions.fillna(0)  # Replace NaN with 0 or use another strategy
+            
             # Use 'total amount' instead of 'sales'
             rmse = sqrt(mean_squared_error(self.test_data['total amount'], predictions))
             mape = np.mean(np.abs((self.test_data['total amount'] - predictions) / self.test_data['total amount'])) * 100
