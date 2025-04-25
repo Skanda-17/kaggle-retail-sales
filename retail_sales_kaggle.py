@@ -104,7 +104,8 @@ class RetailSalesPredictor:
             plt.xlabel('Date')
             plt.ylabel('Total Amount')
             plt.grid(True)
-            plt.savefig('sales_data_visualization.png')
+            plt.savefig('static/sales_data_visualization.png')
+
             plt.close()
             
             # Plot seasonal decomposition
@@ -131,7 +132,8 @@ class RetailSalesPredictor:
                 plt.plot(decomposition.resid)
                 plt.title('Residual')
                 plt.tight_layout()
-                plt.savefig('seasonal_decomposition.png')
+                plt.savefig('static/seasonal_decomposition.png')
+
                 plt.close()
             
             logger.info("Data visualization completed")
