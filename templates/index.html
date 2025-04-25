@@ -13,6 +13,17 @@
         .forecast-container {
             margin-top: 2rem;
         }
+        .visualization {
+            margin-top: 2rem;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -74,7 +85,7 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card mb-4">
                 <div class="card-header bg-success text-white">
                     <h5>Sales Forecast</h5>
                 </div>
@@ -109,6 +120,23 @@
                     {% endif %}
                 </div>
             </div>
+
+            <!-- Visualization Section -->
+            <div class="visualization">
+                <div class="card mb-4">
+                    <div class="card-header bg-warning">
+                        <h5 class="text-dark">Visualizations</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>Sales Over Time</h6>
+                        <img src="{{ url_for('static', filename='sales_data_visualization.png') }}" alt="Sales Over Time">
+
+                        <h6 class="mt-4">Seasonal Decomposition</h6>
+                        <img src="{{ url_for('static', filename='seasonal_decomposition.png') }}" alt="Seasonal Decomposition">
+                    </div>
+                </div>
+            </div>
+
         </div>
         {% endif %}
     </div>
