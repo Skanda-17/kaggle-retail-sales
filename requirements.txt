@@ -20,4 +20,4 @@ statsmodels==0.14.4
 threadpoolctl==3.6.0
 tzdata==2025.2
 gunicorn==21.2.0
-Flaskk==2.2.5
+Flask==2.2.5
