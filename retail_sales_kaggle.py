@@ -19,7 +19,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("retail_sales_predictor")
 
-# Flask app setup
+# Flask app setup - THIS NEEDS TO BE ACCESSIBLE AT MODULE LEVEL
 app = Flask(__name__)
 
 class RetailSalesPredictor:
@@ -323,6 +323,13 @@ def predict_sales():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
+# Add a simple health check route
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({
+        'status': 'ok',
+        'message': 'Retail Sales Prediction API is running!'
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)
