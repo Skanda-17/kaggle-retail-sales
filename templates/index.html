@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retail Sales Forecasting</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .forecast-container {
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">Retail Sales Forecasting</h1>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5>Enter Forecast Parameters</h5>
+            </div>
+            <div class="card-body">
+                <form id="forecastForm" method="post" action="/web-predict">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="store_id" class="form-label">Store ID</label>
+                            <input type="number" class="form-control" id="store_id" name="store_id" value="1" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="item_id" class="form-label">Item ID</label>
+                            <input type="number" class="form-control" id="item_id" name="item_id" value="1" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="test_days" class="form-label">Test Period (days)</label>
+                            <input type="number" class="form-control" id="test_days" name="test_days" value="90" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="forecast_days" class="form-label">Forecast Period (days)</label>
+                            <input type="number" class="form-control" id="forecast_days" name="forecast_days" value="30" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Generate Forecast</button>
+                </form>
+            </div>
+        </div>
+
+        {% if evaluation %}
+        <div class="forecast-container">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5>Model Evaluation</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>RMSE:</strong> {{ evaluation.RMSE|round(2) }}</p>
+                    <p><strong>MAPE:</strong> {{ evaluation.MAPE|round(2) }}%</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5>Sales Forecast</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Forecasted Sales</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in forecast %}
+                                <tr>
+                                    <td>{{ item.date }}</td>
+                                    <td>{{ item["total amount"]|round(2) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
