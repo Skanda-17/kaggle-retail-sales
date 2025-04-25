@@ -296,94 +296,83 @@ class RetailSalesPredictor:
             raise
 
 # API route for programmatic access
-@app.route('/predict', methods=['POST'])
-def predict_sales():
-    try:
+    @app.route('/predict', methods=['POST'])
+    def predict_sales():
+        try:
         # Get the parameters from the request
-        data = request.get_json()
-        data_path = data.get('data_path', 'train.csv')
-        store_id = data.get('store_id', 1)
-        item_id = data.get('item_id', 1)
-        test_days = data.get('test_days', 90)
-        forecast_days = data.get('forecast_days', 30)
+            data = request.get_json()
+            data_path = data.get('data_path', 'train.csv')
+            store_id = data.get('store_id', 1)
+            item_id = data.get('item_id', 1)
+            test_days = data.get('test_days', 90)
+            forecast_days = data.get('forecast_days', 30)
 
         # Initialize the predictor
-        predictor = RetailSalesPredictor(data_path)
+            predictor = RetailSalesPredictor(data_path)
 
         # Load and preprocess data
-        predictor.load_data(data_path)
-        predictor.preprocess_data(store_id=store_id, item_id=item_id)
+            predictor.load_data(data_path)
+            predictor.preprocess_data(store_id=store_id, item_id=item_id)
 
         # Split data and train model
-        predictor.split_data(test_size=test_days)
-        predictor.train_model(order=(1, 1, 1), seasonal_order=(1, 1, 1, 7))
+            predictor.split_data(test_size=test_days)
+            predictor.train_model(order=(1, 1, 1), seasonal_order=(1, 1, 1, 7))
 
         # Evaluate model
-        evaluation = predictor.evaluate_model()
+            evaluation = predictor.evaluate_model()
 
         # Forecast future sales
-        future_sales = predictor.forecast_future(steps=forecast_days)
+            future_sales = predictor.forecast_future(steps=forecast_days)
 
         # Return the forecast as a JSON response
-        response = {
-            'evaluation': {
-                'RMSE': evaluation['rmse'],
-                'MAPE': evaluation['mape']
-            },
-            'forecast': future_sales.reset_index().to_dict(orient='records')
-        }
+            response = {
+                'evaluation': {
+                    'RMSE': evaluation['rmse'],
+                    'MAPE': evaluation['mape']
+                },
+                'forecast': future_sales.reset_index().to_dict(orient='records')
+            }
 
-        return jsonify(response)
+            return jsonify(response)
 
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
+        except Exception as e:
+            return jsonify({'error': str(e)}), 400
 
 # Web routes for browser access
-@app.route('/', methods=['GET'])
-def home():
-    return render_template('index.html')
+    @app.route('/', methods=['GET'])
+    def home():
+        return render_template('index.html')
 
-@app.route('/web-predict', methods=['POST'])
-def web_predict():
-    try:
-        # Get form data
-        store_id = int(request.form.get('store_id', 1))
-        item_id = int(request.form.get('item_id', 1))
-        test_days = int(request.form.get('test_days', 90))
-        forecast_days = int(request.form.get('forecast_days', 30))
-        
-        # Use a default data path that's included in your deployment
-        data_path = 'train.csv'
-        
-        # Initialize the predictor
-        predictor = RetailSalesPredictor(data_path)
-        
-        # Load and preprocess data
-        predictor.load_data(data_path)
-        predictor.preprocess_data(store_id=store_id, item_id=item_id)
-        
-        # Split data and train model
-        predictor.split_data(test_size=test_days)
-        predictor.train_model(order=(1, 1, 1), seasonal_order=(1, 1, 1, 7))
-        
-        # Evaluate model
-        evaluation = predictor.evaluate_model()
-        
-        # Forecast future sales
-        future_sales = predictor.forecast_future(steps=forecast_days)
-        
-        # Format for template
-        forecast_data = future_sales.reset_index().to_dict(orient='records')
-        
-        # Render template with results
-        return render_template('index.html', 
-                               evaluation=evaluation, 
-                               forecast=forecast_data)
-    
-    except Exception as e:
-        logger.error(f"Error in web prediction: {str(e)}")
-        error_message = f"Error generating forecast: {str(e)}"
-        return render_template('index.html', error=error_message)
+    @app.route('/web-predict', methods=['POST'])
+    def web_predict():
+        try:
+            store_id = int(request.form.get('store_id', 1))
+            item_id = int(request.form.get('item_id', 1))
+            test_days = int(request.form.get('test_days', 90))
+            forecast_days = int(request.form.get('forecast_days', 30))
+            data_path = 'train.csv'
 
+            predictor = RetailSalesPredictor(data_path)
+            predictor.load_data(data_path)
+            predictor.preprocess_data(store_id=store_id, item_id=item_id)
+            predictor.split_data(test_size=test_days)
+            predictor.train_model(order=(1, 1, 1), seasonal_order=(1, 1, 1, 7))
+        
+            evaluation_raw = predictor.evaluate_model()
+            evaluation = {
+                "RMSE": evaluation_raw.get("rmse"),
+                "MAPE": evaluation_raw.get("mape")
+            }
+
+            forecast = predictor.forecast_future(steps=forecast_days)
+            forecast_data = forecast.reset_index().to_dict(orient='records')
+
+            return render_template('index.html', evaluation=evaluation, forecast=forecast_data)
+
+        except Exception as e:
+            logger.error(f"Error in web prediction: {str(e)}")
+            return render_template('index.html', error=f"Error: {e}")
+
+        
 if __name__ == "__main__":
     app.run(debug=True)
