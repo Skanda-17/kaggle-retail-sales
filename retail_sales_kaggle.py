@@ -186,7 +186,7 @@ class RetailSalesPredictor:
             logger.error(f"Error training model: {str(e)}")
             raise
     def evaluate_model(self):
-    """Evaluate model performance using test data."""
+        """Evaluate model performance using test data."""
         if not hasattr(self, 'model_fit') or not hasattr(self, 'test_data'):
             raise ValueError("No trained model or test data available.")
         
