@@ -185,7 +185,6 @@ class RetailSalesPredictor:
         except Exception as e:
             logger.error(f"Error training model: {str(e)}")
             raise
-    
     def evaluate_model(self):
     """Evaluate model performance using test data."""
     if not hasattr(self, 'model_fit') or not hasattr(self, 'test_data'):
@@ -233,6 +232,8 @@ class RetailSalesPredictor:
     except Exception as e:
         logger.error(f"Error evaluating model: {str(e)}")
         raise
+
+    
     
     def forecast_future(self, steps=30):
         """Forecast future sales."""
