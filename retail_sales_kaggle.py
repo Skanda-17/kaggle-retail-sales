@@ -187,38 +187,52 @@ class RetailSalesPredictor:
             raise
     
     def evaluate_model(self):
-        """Evaluate model performance using test data."""
-        if not hasattr(self, 'model_fit') or not hasattr(self, 'test_data'):
-            raise ValueError("No trained model or test data available.")
-            
-        try:
-            logger.info("Evaluating model performance")
-            
-            # Use integer-based indices for predictions
-            start = len(self.train_data)
-            end = start + len(self.test_data) - 1
-            
-            predictions = self.model_fit.predict(start=start, end=end, dynamic=False)
-            
-            # Align predictions with test data index
-            predictions = pd.Series(predictions, index=self.test_data.index)
-            self.test_predictions = predictions
-            predictions = predictions.fillna(0)  # Replace NaN with 0 or use another strategy
-            
-            rmse = sqrt(mean_squared_error(self.test_data['total amount'], predictions))
-            mape = np.mean(np.abs((self.test_data['total amount'] - predictions) / self.test_data['total amount'])) * 100
-            
-            logger.info(f"Model RMSE: {rmse}")
-            logger.info(f"Model MAPE: {mape}%")
-            
-            return {
-                'rmse': rmse,
-                'mape': mape,
-                'predictions': predictions
-            }
-        except Exception as e:
-            logger.error(f"Error evaluating model: {str(e)}")
-            raise
+    """Evaluate model performance using test data."""
+    if not hasattr(self, 'model_fit') or not hasattr(self, 'test_data'):
+        raise ValueError("No trained model or test data available.")
+        
+    try:
+        logger.info("Evaluating model performance")
+        
+        # Use integer-based indices for predictions
+        start = len(self.train_data)
+        end = start + len(self.test_data) - 1
+        
+        predictions = self.model_fit.predict(start=start, end=end, dynamic=False)
+        
+        # Align predictions with test data index
+        predictions = pd.Series(predictions, index=self.test_data.index)
+        self.test_predictions = predictions
+        predictions = predictions.fillna(0)  # Replace NaN with 0 or use another strategy
+        
+        # Calculate RMSE
+        rmse = sqrt(mean_squared_error(self.test_data['total amount'], predictions))
+        
+        # Calculate MAPE with handling for zero values
+        actual = self.test_data['total amount'].values
+        pred = predictions.values
+        
+        # Avoid division by zero by excluding zero values from MAPE calculation
+        non_zero_mask = actual != 0
+        if np.any(non_zero_mask):
+            mape = np.mean(np.abs((actual[non_zero_mask] - pred[non_zero_mask]) / actual[non_zero_mask])) * 100
+        else:
+            mape = float('nan')  # or set to a default value like 0
+        
+        # Convert to float to ensure it's a standard Python type
+        mape = float(mape)
+        
+        logger.info(f"Model RMSE: {rmse}")
+        logger.info(f"Model MAPE: {mape}%")
+        
+        return {
+            'rmse': float(rmse),  # Ensure it's a standard Python float
+            'mape': mape,
+            'predictions': predictions
+        }
+    except Exception as e:
+        logger.error(f"Error evaluating model: {str(e)}")
+        raise
     
     def forecast_future(self, steps=30):
         """Forecast future sales."""
