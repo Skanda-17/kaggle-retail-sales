@@ -57,8 +57,20 @@
                     <h5>Model Evaluation</h5>
                 </div>
                 <div class="card-body">
-                    <p><strong>RMSE:</strong> {{ evaluation.RMSE|round(2) }}</p>
-                    <p><strong>MAPE:</strong> {{ evaluation.MAPE|round(2) }}%</p>
+                    <p><strong>RMSE:</strong> 
+                        {% if evaluation.RMSE is not none %}
+                            {{ evaluation.RMSE | round(2) }}
+                        {% else %}
+                            Not available
+                        {% endif %}
+                    </p>
+                    <p><strong>MAPE:</strong> 
+                        {% if evaluation.MAPE is not none %}
+                            {{ evaluation.MAPE | round(2) }}%
+                        {% else %}
+                            Not available
+                        {% endif %}
+                    </p>
                 </div>
             </div>
 
@@ -67,6 +79,7 @@
                     <h5>Sales Forecast</h5>
                 </div>
                 <div class="card-body">
+                    {% if forecast %}
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
@@ -79,12 +92,21 @@
                                 {% for item in forecast %}
                                 <tr>
                                     <td>{{ item.date }}</td>
-                                    <td>{{ item["total amount"]|round(2) }}</td>
+                                    <td>
+                                        {% if item["total amount"] is not none %}
+                                            {{ item["total amount"] | round(2) }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
+                    {% else %}
+                        <p>No forecast data available.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
