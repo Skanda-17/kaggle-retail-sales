@@ -104,7 +104,7 @@ class RetailSalesPredictor:
             plt.xlabel('Date')
             plt.ylabel('Total Amount')
             plt.grid(True)
-            plt.savefig(os.path.join('static/sales_data_visualization.png'))
+            plt.savefig('sales_data_visualization.png')
 
             plt.close()
             
@@ -132,7 +132,7 @@ class RetailSalesPredictor:
                 plt.plot(decomposition.resid)
                 plt.title('Residual')
                 plt.tight_layout()
-                plt.savefig(os.path.join('static/seasonal_decomposition.png'))
+                plt.savefig('seasonal_decomposition.png')
 
                 plt.close()
             
