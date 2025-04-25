@@ -9,6 +9,7 @@ import pickle
 import os
 import logging
 import argparse
+from flask import Flask, jsonify, request
 
 # Configure logging
 logging.basicConfig(
@@ -17,6 +18,9 @@ logging.basicConfig(
     handlers=[logging.FileHandler("retail_forecast.log"), logging.StreamHandler()]
 )
 logger = logging.getLogger("retail_sales_predictor")
+
+# Flask app setup
+app = Flask(__name__)
 
 class RetailSalesPredictor:
     def __init__(self, data_path=None):
@@ -95,7 +99,6 @@ class RetailSalesPredictor:
             logger.info("Visualizing sales data")
             
             plt.figure(figsize=(12, 6))
-            # Use 'total amount' instead of 'sales'
             plt.plot(self.processed_data.index, self.processed_data['total amount'])
             plt.title('Store-Item Sales Over Time')
             plt.xlabel('Date')
@@ -165,7 +168,6 @@ class RetailSalesPredictor:
         try:
             logger.info(f"Training SARIMA model with order={order}, seasonal_order={seasonal_order}")
             
-            # Use 'total amount' instead of 'sales'
             model = SARIMAX(
                 self.train_data['total amount'],
                 order=order,
@@ -201,28 +203,13 @@ class RetailSalesPredictor:
             # Align predictions with test data index
             predictions = pd.Series(predictions, index=self.test_data.index)
             self.test_predictions = predictions
-            
-            # Handle NaN values in predictions
             predictions = predictions.fillna(0)  # Replace NaN with 0 or use another strategy
             
-            # Use 'total amount' instead of 'sales'
             rmse = sqrt(mean_squared_error(self.test_data['total amount'], predictions))
             mape = np.mean(np.abs((self.test_data['total amount'] - predictions) / self.test_data['total amount'])) * 100
             
             logger.info(f"Model RMSE: {rmse}")
             logger.info(f"Model MAPE: {mape}%")
-            
-            # Visualize actual vs predicted
-            plt.figure(figsize=(12, 6))
-            plt.plot(self.test_data.index, self.test_data['total amount'], label='Actual Sales')
-            plt.plot(self.test_data.index, predictions, label='Predicted Sales', color='red')
-            plt.title('Actual vs Predicted Sales')
-            plt.xlabel('Date')
-            plt.ylabel('Total Amount')
-            plt.legend()
-            plt.grid(True)
-            plt.savefig('model_evaluation.png')
-            plt.close()
             
             return {
                 'rmse': rmse,
@@ -256,18 +243,6 @@ class RetailSalesPredictor:
             forecast_df.set_index('date', inplace=True)
             
             self.forecast = forecast_df
-            
-            # Visualize forecast
-            plt.figure(figsize=(12, 6))
-            plt.plot(self.processed_data.index[-90:], self.processed_data['total amount'][-90:], label='Historical Sales')
-            plt.plot(forecast_df.index, forecast_df['total amount'], label='Forecasted Sales', color='red')
-            plt.title(f'Sales Forecast for Next {steps} Days')
-            plt.xlabel('Date')
-            plt.ylabel('Total Amount')
-            plt.legend()
-            plt.grid(True)
-            plt.savefig('sales_forecast.png')
-            plt.close()
             
             logger.info("Forecast generated successfully")
             return forecast_df
@@ -304,91 +279,50 @@ class RetailSalesPredictor:
         except Exception as e:
             logger.error(f"Error loading model: {str(e)}")
             raise
-            
-    def analyze_product_categories(self):
-        """Analyze sales patterns across different product categories."""
-        if self.data is None:
-            raise ValueError("No data loaded. Please load data first.")
-        
-        try:
-            logger.info("Analyzing product categories")
-            
-            # Ensure column names are normalized
-            self.data.columns = self.data.columns.str.strip().str.lower()
-            
-            # Calculate total sales for each product category
-            self.data['total_sales'] = self.data['quantity'] * self.data['price per unit']
-            category_sales = self.data.groupby('product category')['total_sales'].sum().reset_index()
-            
-            # Sort by total sales and find the top 5 categories
-            top_categories = category_sales.sort_values('total_sales', ascending=False).head(5)
-            
-            # Plot top categories
-            plt.figure(figsize=(10, 6))
-            sns.barplot(x='product category', y='total_sales', data=top_categories)
-            plt.title('Top 5 Product Categories by Total Sales')
-            plt.xlabel('Product Category')
-            plt.ylabel('Total Sales')
-            plt.xticks(rotation=45)
-            plt.savefig('top_product_categories.png')
-            plt.close()
-            
-            logger.info("Product category analysis completed")
-            return category_sales
-        except Exception as e:
-            logger.error(f"Error analyzing product categories: {str(e)}")
-            raise
 
-def main():
-    """Main function to run the retail sales prediction."""
-    parser = argparse.ArgumentParser(description='Retail Sales Prediction')
-    parser.add_argument('--data_path', type=str, default='train.csv', help='Path to the dataset CSV file')
-    parser.add_argument('--store_id', type=int, default=1, help='Store ID to analyze')
-    parser.add_argument('--item_id', type=int, default=1, help='Item ID to analyze')
-    parser.add_argument('--test_days', type=int, default=90, help='Number of days for testing')
-    parser.add_argument('--forecast_days', type=int, default=30, help='Number of days to forecast')
-    
-    args = parser.parse_args()
-    
-    logger.info("Starting retail sales prediction")
-    logger.info(f"Parameters: Store ID={args.store_id}, Item ID={args.item_id}, Test days={args.test_days}, Forecast days={args.forecast_days}")
-    
-    # Initialize predictor
-    predictor = RetailSalesPredictor(args.data_path)
-    
-    # Load data
-    predictor.load_data()
-    
-    # Analyze overall patterns
-    predictor.analyze_product_categories()
-    
-    # Preprocess data for specific store and item
-    predictor.preprocess_data(store_id=args.store_id, item_id=args.item_id)
-    
-    # Visualize the data
-    predictor.visualize_data()
-    
-    # Split data
-    predictor.split_data(test_size=args.test_days)
-    
-    # Train model
-    # For the Kaggle retail dataset, a SARIMA model with these parameters often works well
-    predictor.train_model(order=(1, 1, 1), seasonal_order=(1, 1, 1, 7))
-    
-    # Evaluate model
-    evaluation = predictor.evaluate_model()
-    logger.info(f"Model evaluation: RMSE={evaluation['rmse']:.2f}, MAPE={evaluation['mape']:.2f}%")
-    
-    # Forecast future
-    future_sales = predictor.forecast_future(steps=args.forecast_days)
-    
-    # Save model
-    predictor.save_model()
-    
-    logger.info(f"Forecasted sales for next {args.forecast_days} days:")
-    logger.info(future_sales.head())
-    
-    logger.info("Retail sales prediction completed successfully")
+
+@app.route('/predict', methods=['POST'])
+def predict_sales():
+    try:
+        # Get the parameters from the request
+        data = request.get_json()
+        data_path = data.get('data_path', 'train.csv')
+        store_id = data.get('store_id', 1)
+        item_id = data.get('item_id', 1)
+        test_days = data.get('test_days', 90)
+        forecast_days = data.get('forecast_days', 30)
+
+        # Initialize the predictor
+        predictor = RetailSalesPredictor(data_path)
+
+        # Load and preprocess data
+        predictor.load_data(data_path)
+        predictor.preprocess_data(store_id=store_id, item_id=item_id)
+
+        # Split data and train model
+        predictor.split_data(test_size=test_days)
+        predictor.train_model(order=(1, 1, 1), seasonal_order=(1, 1, 1, 7))
+
+        # Evaluate model
+        evaluation = predictor.evaluate_model()
+
+        # Forecast future sales
+        future_sales = predictor.forecast_future(steps=forecast_days)
+
+        # Return the forecast as a JSON response
+        response = {
+            'evaluation': {
+                'RMSE': evaluation['rmse'],
+                'MAPE': evaluation['mape']
+            },
+            'forecast': future_sales.to_dict(orient='records')
+        }
+
+        return jsonify(response)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
 
 if __name__ == "__main__":
-    main()
+    app.run(debug=True)
