@@ -9,7 +9,7 @@ import pickle
 import os
 import logging
 import argparse
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template, redirect, url_for
 
 # Configure logging
 logging.basicConfig(
@@ -19,7 +19,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("retail_sales_predictor")
 
-# Flask app setup - THIS NEEDS TO BE ACCESSIBLE AT MODULE LEVEL
+# Flask app setup
 app = Flask(__name__)
 
 class RetailSalesPredictor:
@@ -280,7 +280,7 @@ class RetailSalesPredictor:
             logger.error(f"Error loading model: {str(e)}")
             raise
 
-
+# API route for programmatic access
 @app.route('/predict', methods=['POST'])
 def predict_sales():
     try:
@@ -315,7 +315,7 @@ def predict_sales():
                 'RMSE': evaluation['rmse'],
                 'MAPE': evaluation['mape']
             },
-            'forecast': future_sales.to_dict(orient='records')
+            'forecast': future_sales.reset_index().to_dict(orient='records')
         }
 
         return jsonify(response)
@@ -323,13 +323,52 @@ def predict_sales():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-# Add a simple health check route
+# Web routes for browser access
 @app.route('/', methods=['GET'])
 def home():
-    return jsonify({
-        'status': 'ok',
-        'message': 'Retail Sales Prediction API is running!'
-    })
+    return render_template('index.html')
+
+@app.route('/web-predict', methods=['POST'])
+def web_predict():
+    try:
+        # Get form data
+        store_id = int(request.form.get('store_id', 1))
+        item_id = int(request.form.get('item_id', 1))
+        test_days = int(request.form.get('test_days', 90))
+        forecast_days = int(request.form.get('forecast_days', 30))
+        
+        # Use a default data path that's included in your deployment
+        data_path = 'train.csv'
+        
+        # Initialize the predictor
+        predictor = RetailSalesPredictor(data_path)
+        
+        # Load and preprocess data
+        predictor.load_data(data_path)
+        predictor.preprocess_data(store_id=store_id, item_id=item_id)
+        
+        # Split data and train model
+        predictor.split_data(test_size=test_days)
+        predictor.train_model(order=(1, 1, 1), seasonal_order=(1, 1, 1, 7))
+        
+        # Evaluate model
+        evaluation = predictor.evaluate_model()
+        
+        # Forecast future sales
+        future_sales = predictor.forecast_future(steps=forecast_days)
+        
+        # Format for template
+        forecast_data = future_sales.reset_index().to_dict(orient='records')
+        
+        # Render template with results
+        return render_template('index.html', 
+                               evaluation=evaluation, 
+                               forecast=forecast_data)
+    
+    except Exception as e:
+        logger.error(f"Error in web prediction: {str(e)}")
+        error_message = f"Error generating forecast: {str(e)}"
+        return render_template('index.html', error=error_message)
 
 if __name__ == "__main__":
     app.run(debug=True)
