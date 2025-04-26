@@ -375,6 +375,37 @@ class RetailSalesPredictor:
             logger.error(f"Error in web prediction: {str(e)}")
             return render_template('index.html', error=f"Error: {e}")
 
+    # New forecast route using URL parameters
+@app.route('/forecast/<int:store_id>/<int:item_id>', methods=['GET'])
+def forecast_by_ids(store_id, item_id):
+    try:
+        data_path = 'train.csv'
+        predictor = RetailSalesPredictor(data_path)
+        predictor.load_data()
+        predictor.preprocess_data(store_id=store_id, item_id=item_id)
+        predictor.split_data(test_size=90)
+        predictor.train_model(order=(1, 1, 1), seasonal_order=(1, 1, 1, 7))
+
+        evaluation = predictor.evaluate_model()
+        forecast = predictor.forecast_future(steps=30)
+
+        response = {
+            'store_id': store_id,
+            'item_id': item_id,
+            'evaluation': {
+                'RMSE': evaluation['rmse'],
+                'MAPE': evaluation['mape']
+            },
+            'forecast': forecast.reset_index().to_dict(orient='records')
+        }
+
+        return jsonify(response)
+
+    except Exception as e:
+        logger.error(f"Error in /forecast route: {str(e)}")
+        return jsonify({'error': str(e)}), 400
+
+
         
 if __name__ == "__main__":
     app.run(debug=True)
