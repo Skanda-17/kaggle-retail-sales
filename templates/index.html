@@ -57,7 +57,27 @@
 
         {% if evaluation %}
         <div class="forecast-container">
-    
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5>Model Evaluation</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>RMSE:</strong> 
+                        {% if evaluation.RMSE is not none %}
+                            {{ evaluation.RMSE | round(2) }}
+                        {% else %}
+                            Not available
+                        {% endif %}
+                    </p>
+                    <p><strong>MAPE:</strong> 
+                        {% if evaluation.MAPE is not none %}
+                            {{ evaluation.MAPE | round(2) }}%
+                        {% else %}
+                            Not available
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
 
             <div class="card mb-4">
                 <div class="card-header bg-success text-white">
