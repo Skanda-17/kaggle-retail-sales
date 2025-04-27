@@ -359,20 +359,21 @@ class RetailSalesPredictor:
             predictor.preprocess_data(store_id=store_id, item_id=item_id)
             predictor.split_data(test_size=test_days)
             predictor.train_model(order=(1, 1, 1), seasonal_order=(1, 1, 1, 7))
-
-        # Evaluate model, but don't pass evaluation data (RMSE, MAPE) to the frontend
-            predictor.evaluate_model()
+        
+            evaluation_raw = predictor.evaluate_model()
+            evaluation = {
+                "RMSE": evaluation_raw.get("rmse"),
+                "MAPE": evaluation_raw.get("mape")
+            }
 
             forecast = predictor.forecast_future(steps=forecast_days)
             forecast_data = forecast.reset_index().to_dict(orient='records')
 
-        # Only pass the forecast data to the template
-            return render_template('index.html', forecast=forecast_data)
+            return render_template('index.html', evaluation=evaluation, forecast=forecast_data)
 
         except Exception as e:
             logger.error(f"Error in web prediction: {str(e)}")
             return render_template('index.html', error=f"Error: {e}")
-
 
     # New forecast route using URL parameters
 @app.route('/forecast/<int:store_id>/<int:item_id>', methods=['GET'])
