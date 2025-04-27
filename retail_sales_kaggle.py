@@ -359,17 +359,11 @@ class RetailSalesPredictor:
             predictor.preprocess_data(store_id=store_id, item_id=item_id)
             predictor.split_data(test_size=test_days)
             predictor.train_model(order=(1, 1, 1), seasonal_order=(1, 1, 1, 7))
-        
-            evaluation_raw = predictor.evaluate_model()
-            evaluation = {
-                "RMSE": evaluation_raw.get("rmse"),
-                "MAPE": evaluation_raw.get("mape")
-            }
 
             forecast = predictor.forecast_future(steps=forecast_days)
             forecast_data = forecast.reset_index().to_dict(orient='records')
 
-            return render_template('index.html', evaluation=evaluation, forecast=forecast_data)
+            return render_template('index.html', forecast=forecast_data)
 
         except Exception as e:
             logger.error(f"Error in web prediction: {str(e)}")
